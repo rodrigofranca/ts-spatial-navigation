@@ -68,13 +68,12 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "build:clean": "rm -rf dist && npm run build",
+    "build:clean": "rm -rf dist && tsc --build --force",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "lint": "tsc --noEmit",
-    "prepublishOnly": "npm run build:clean && npm test"
+    "lint": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",

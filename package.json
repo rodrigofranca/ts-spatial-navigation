@@ -6,12 +6,12 @@
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/user/ts-spatial-navigation.git"
+    "url": "git+https://github.com/rodrigofranca/ts-spatial-navigation.git"
   },
   "bugs": {
-    "url": "https://github.com/user/ts-spatial-navigation/issues"
+    "url": "https://github.com/rodrigofranca/ts-spatial-navigation/issues"
   },
-  "homepage": "https://github.com/user/ts-spatial-navigation#readme",
+  "homepage": "https://github.com/rodrigofranca/ts-spatial-navigation#readme",
   "keywords": [
     "spatial-navigation",
     "smart-tv",

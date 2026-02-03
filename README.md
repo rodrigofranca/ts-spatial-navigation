@@ -3,7 +3,7 @@
 A TypeScript library for spatial navigation in Smart TV applications, TV boxes, and any interface that requires arrow key navigation.
 
 [![npm version](https://badge.fury.io/js/ts-spatial-navigation.svg)](https://www.npmjs.com/package/ts-spatial-navigation)
-[![CI](https://github.com/user/ts-spatial-navigation/actions/workflows/ci.yml/badge.svg)](https://github.com/user/ts-spatial-navigation/actions/workflows/ci.yml)
+[![CI](https://github.com/rodrigofranca/ts-spatial-navigation/actions/workflows/ci.yml/badge.svg)](https://github.com/rodrigofranca/ts-spatial-navigation/actions/workflows/ci.yml)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
 ## Features

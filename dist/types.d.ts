@@ -1,156 +1,31 @@
 /**
- * indicates the direction given by arrow keys or move() method.
+ * Spatial Navigation Type Definitions
+ * Following Interface Segregation Principle (ISP)
+ */
+import type { EnterToValue, RestrictModeValue } from './constants';
+/**
+ * Navigation direction
  */
 export type Direction = 'up' | 'down' | 'left' | 'right';
-type LeaveFor = {
-    [key in Direction]: HTMLElement | string;
-};
-export type Config = {
-    /**
-     * Giving a sectionId to a section enables you to refer to it in other methods but is not required.
-     */
-    id?: string;
-    /**
-     * Elements matching selector are regarded as navigable elements in SpatialNavigation. However, hidden or disabled elements are ignored as they can not be focused in any way.
-     *
-     * Note: an `selector` can be one of following types:
-     * - a valid selector string for `"querySelectorAll"`
-     * - a NodeList or an array containing DOM elements
-     * - a single DOM element
-     * - a string "@{SectionId}" to indicate the specified section
-     *
-     * @default ''
-     */
-    selector?: string;
-    /**
-     * When it is true, only elements in the straight (vertical or horizontal) direction will be navigated. i.e. SpatialNavigation ignores elements in the oblique directions.
-     *
-     * @default false
-     */
-    straightOnly?: boolean;
-    /**
-     * his threshold is used to determine whether an element is considered in the straight (vertical or horizontal) directions. Valid number is between 0 to 1.0.
-     *
-     * Setting it to 0.3 means that an element is counted in the straight directions only if it overlaps the straight area at least 0.3x of its total area
-     *
-     * @default 0.5
-     */
-    straightOverlapThreshold?: number;
-    /**
-     * When it is true, the previously focused element will have higher priority to be chosen as the next candidate.
-     *
-     * @default false
-     */
-    rememberSource?: boolean;
-    /**
-     * When it is true, elements defined in this section are unnavigable. This property is modified by disable() and enable() as well.
-     *
-     * @default false
-     */
-    disabled?: boolean;
-    /**
-     * When a section is specified to be the next focused target, e.g. `focus('some-section-id')` is called, the first navigable element matching defaultElement within this section will be chosen first.
-     *
-     * @type {string} - Selector (without @ syntax)
-     * @default null
-     */
-    defaultElement?: HTMLElement | string;
-    /**
-     * If the focus comes from another section, you can define which element in this section should be focused first.
-     *
-     * `'last-focused'` indicates the last focused element before we left this section last time. If this section has never been focused yet, the default element (if any) will be chosen next.
-     *
-     * `'default-element'` indicates the element defined in `defaultElement`.
-     *
-     * `'' (empty string)` implies following the original rule without any change.
-     *
-     * @default ''
-     */
-    enterTo?: 'last-focused' | 'default-element' | '';
-    /**
-     * This property specifies which element should be focused next when a user presses the corresponding arrow key and intends to leave the current section.
-     *
-     * It should be a PlainObject consists of four properties: `'left'`, `'right'`, `'up'` and `'down'`. Each property should be a Selector. Any of these properties can be omitted, and SpatialNavigation will follow the original rule to navigate.
-     *
-     * **Note:** Assigning an empty string to any of these properties makes SpatialNavigation go nowhere at that direction.
-     *
-     * @default null
-     */
-    leaveFor?: LeaveFor;
-    /**
-     * `'self-first'` implies that elements within the same section will have higher priority to be chosen as the next candidate.
-     *
-     * `'self-only'` implies that elements in the other sections will never be navigated by arrow keys. (However, you can always focus them by calling focus() manually.)
-     *
-     * `'none'` implies no restriction.
-     *
-     * @default 'self-first'
-     */
-    restrict?: 'self-first' | 'self-only' | 'none';
-    /**
-     * Elements matching tabIndexIgnoreList will never be affected by makeFocusable(). It is usually used to ignore elements that are already focusable.
-     *
-     * @default 'a, input, select, textarea, button, iframe, [contentEditable=true]'
-     */
-    tabIndexIgnoreList?: string;
-    /**
-     * When it is true, hidden elements will be ignored as they can not be focused in any way.
-     *
-     * @default false
-     */
-    ignoreHidden?: boolean;
-    /**
-     * A callback function that accepts a DOM element as the first argument.
-     *
-     * SpatialNavigation calls this function every time when it tries to traverse every single candidate. You can ignore arbitrary elements by returning false.
-     */
-    navigableFilter?: (element: HTMLElement, sectionId: string) => boolean;
-    /**
-     *
-     */
-    lastFocusedElement?: HTMLElement;
-    previous?: {
-        target: HTMLElement;
-        destination: HTMLElement;
-        reverse: Direction;
-    };
-};
-export type GlobalConfig = Partial<Config> & {
-    sectionPrefix?: string;
-    eventPrefix?: string;
-};
-export type SpatialEventDetail = {
-    /**
-     * indicates the direction given by arrow keys or move() method.
-     * @type {Direction} - "up" | "down" | "left" | "right"
-     */
-    direction?: Direction;
-    /**
-     * indicates the currently focused section.
-     */
-    id?: string;
-    /**
-     * indicate where the focus will be moved next.
-     */
-    nextId?: string;
-    /**
-     * indicate where the focus will be moved next.
-     */
-    nextElement?: HTMLElement;
-    /**
-     * indicates the last focused element before this move.
-     */
-    previousElement?: HTMLElement;
-    /**
-     * indicates whether this event is triggered by native focus-related events or not.
-     */
-    native?: boolean;
-    /**
-     * indicates why this move happens. 'keydown' means triggered by key events while 'api' means triggered by calling move()) directly.
-     */
-    cause?: 'keydown' | 'api';
-};
-export type Rect = {
+/**
+ * Selector type - can be CSS selector string, NodeList, or HTMLElement
+ */
+export type Selector = string | NodeList | HTMLElement | HTMLElement[];
+/**
+ * Extended selector - includes @sectionId syntax
+ */
+export type ExtendedSelector = Selector | `@${string}`;
+/**
+ * Point in 2D space
+ */
+export interface Point {
+    x: number;
+    y: number;
+}
+/**
+ * Rectangle with center point calculation
+ */
+export interface Rect {
     left: number;
     top: number;
     right: number;
@@ -166,20 +41,257 @@ export type Rect = {
         top: number;
         bottom: number;
     };
-};
-export type DistanceFunctions = {
-    nearPlumbLineIsBetter: (rect: Rect) => number;
-    nearHorizonIsBetter: (rect: Rect) => number;
-    nearTargetLeftIsBetter: (rect: Rect) => number;
-    nearTargetTopIsBetter: (rect: Rect) => number;
-    topIsBetter: (rect: Rect) => number;
-    bottomIsBetter: (rect: Rect) => number;
-    leftIsBetter: (rect: Rect) => number;
-    rightIsBetter: (rect: Rect) => number;
-};
-export type Priority = {
+}
+/**
+ * Distance calculation function
+ */
+export type DistanceFunction = (rect: Rect) => number;
+/**
+ * Collection of distance functions for navigation
+ */
+export interface DistanceFunctions {
+    nearPlumbLineIsBetter: DistanceFunction;
+    nearHorizonIsBetter: DistanceFunction;
+    nearTargetLeftIsBetter: DistanceFunction;
+    nearTargetTopIsBetter: DistanceFunction;
+    topIsBetter: DistanceFunction;
+    bottomIsBetter: DistanceFunction;
+    leftIsBetter: DistanceFunction;
+    rightIsBetter: DistanceFunction;
+}
+/**
+ * Priority group with distance functions for sorting
+ */
+export interface Priority {
     group: Rect[];
-    distance: ((rect: Rect) => number)[];
-};
+    distance: DistanceFunction[];
+}
+/**
+ * Array of priority groups
+ */
 export type Priorities = Priority[];
-export {};
+/**
+ * Basic section identification
+ */
+export interface SectionIdentity {
+    /**
+     * Unique identifier for the section
+     */
+    id?: string;
+    /**
+     * CSS selector for navigable elements in this section
+     */
+    selector?: string;
+}
+/**
+ * Navigation behavior configuration
+ */
+export interface NavigationBehavior {
+    /**
+     * Only allow navigation in cardinal directions (no diagonal)
+     * @default false
+     */
+    straightOnly?: boolean;
+    /**
+     * Threshold for straight direction overlap (0 to 1)
+     * @default 0.5
+     */
+    straightOverlapThreshold?: number;
+    /**
+     * Remember previously focused element when navigating back
+     * @default false
+     */
+    rememberSource?: boolean;
+}
+/**
+ * Section transition configuration
+ */
+export interface SectionTransition {
+    /**
+     * Behavior when entering this section
+     * - 'last-focused': Focus the last focused element
+     * - 'default-element': Focus the default element
+     * - '': Natural focus behavior
+     * @default ''
+     */
+    enterTo?: EnterToValue | 'last-focused' | 'default-element' | '';
+    /**
+     * Configuration for leaving the section in specific directions
+     */
+    leaveFor?: Partial<LeaveFor>;
+    /**
+     * How to restrict navigation at section boundaries
+     * - 'self-first': Prefer staying in section
+     * - 'self-only': Never leave section via keyboard
+     * - 'none': No restriction
+     * @default 'self-first'
+     */
+    restrict?: RestrictModeValue | 'self-first' | 'self-only' | 'none';
+}
+/**
+ * LeaveFor configuration - what to focus when leaving in each direction
+ */
+export interface LeaveFor {
+    up?: string | HTMLElement;
+    down?: string | HTMLElement;
+    left?: string | HTMLElement;
+    right?: string | HTMLElement;
+}
+/**
+ * Filter configuration for navigable elements
+ */
+export interface FilterConfig {
+    /**
+     * Custom filter function for navigable elements
+     * Return false to exclude an element from navigation
+     */
+    navigableFilter?: NavigableFilter;
+    /**
+     * Elements matching this selector will not have tabindex modified
+     * @default 'a, input, select, textarea, button, iframe, [contentEditable=true]'
+     */
+    tabIndexIgnoreList?: string;
+    /**
+     * Whether to ignore hidden elements
+     * @default false
+     */
+    ignoreHidden?: boolean;
+}
+/**
+ * Navigable filter function signature
+ */
+export type NavigableFilter = (element: HTMLElement, sectionId: string) => boolean;
+/**
+ * Section state (internal)
+ */
+export interface SectionState {
+    /**
+     * Whether this section is disabled
+     */
+    disabled?: boolean;
+    /**
+     * Default element to focus when entering section
+     */
+    defaultElement?: HTMLElement | string;
+    /**
+     * Last focused element in this section
+     */
+    lastFocusedElement?: HTMLElement;
+    /**
+     * Previous navigation state for rememberSource
+     */
+    previous?: PreviousFocus;
+}
+/**
+ * Previous focus state for rememberSource feature
+ */
+export interface PreviousFocus {
+    target: HTMLElement;
+    destination: HTMLElement;
+    reverse: Direction;
+}
+/**
+ * Full section configuration
+ * Combines all configuration interfaces
+ */
+export interface SectionConfig extends SectionIdentity, NavigationBehavior, SectionTransition, FilterConfig, SectionState {
+}
+/**
+ * Configuration for adding a new section
+ * All properties optional except selector
+ */
+export interface AddSectionConfig extends Partial<SectionConfig> {
+    selector: string;
+}
+/**
+ * Global configuration
+ */
+export interface GlobalConfig extends Omit<SectionConfig, 'id' | 'lastFocusedElement' | 'previous'> {
+    /**
+     * Prefix for auto-generated section IDs
+     * @default 'section-'
+     */
+    sectionPrefix?: string;
+    /**
+     * Prefix for custom events
+     * @default 'sn:'
+     */
+    eventPrefix?: string;
+}
+/**
+ * Legacy Config type for backwards compatibility
+ * @deprecated Use SectionConfig instead
+ */
+export type Config = SectionConfig;
+/**
+ * Detail object for spatial navigation events
+ */
+export interface SpatialEventDetail {
+    /**
+     * Direction of navigation
+     */
+    direction?: Direction;
+    /**
+     * Current section ID
+     */
+    id?: string;
+    /**
+     * Next section ID (for cross-section navigation)
+     */
+    nextId?: string;
+    /**
+     * Element that will receive focus
+     */
+    nextElement?: HTMLElement;
+    /**
+     * Element that had focus before
+     */
+    previousElement?: HTMLElement;
+    /**
+     * Whether triggered by native focus events
+     */
+    native?: boolean;
+    /**
+     * What caused this navigation
+     */
+    cause?: 'keydown' | 'api';
+}
+/**
+ * Spatial navigation custom event
+ */
+export interface SpatialEvent extends CustomEvent<SpatialEventDetail> {
+    type: `sn:${string}`;
+}
+/**
+ * Section store - Map of section ID to configuration
+ */
+export type SectionStore = Map<string, SectionConfig>;
+/**
+ * Navigation state
+ */
+export interface NavigationState {
+    ready: boolean;
+    paused: boolean;
+    duringFocusChange: boolean;
+    sections: SectionStore;
+    sectionCount: number;
+    defaultSectionId: string;
+    lastSectionId: string;
+    idPool: number;
+}
+/**
+ * Deep partial type
+ */
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+/**
+ * Make specific properties required
+ */
+export type WithRequired<T, K extends keyof T> = T & {
+    [P in K]-?: T[P];
+};
+/**
+ * Extract non-undefined properties
+ */
+export type NonUndefined<T> = T extends undefined ? never : T;

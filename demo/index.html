@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spatial Navigation - Interactive Demos</title>
+  <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="/src/styles/focus.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <h1>Spatial Navigation</h1>
+      <p>TypeScript library for Smart TV keyboard navigation</p>
+    </header>
+
+    <!-- Demo Navigation -->
+    <nav id="demo-nav">
+      <button class="nav-btn active" data-demo="basic">Basic</button>
+      <button class="nav-btn" data-demo="filters">Filters</button>
+      <button class="nav-btn" data-demo="sections">Sections</button>
+      <button class="nav-btn" data-demo="restrictions">Restrictions</button>
+      <button class="nav-btn" data-demo="integration">Integration</button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+      <div id="demo-container">
+        <!-- Demo content will be loaded here -->
+      </div>
+
+      <!-- Event Log Sidebar -->
+      <aside id="event-log">
+        <div class="log-header">
+          <h3>Event Log</h3>
+          <button id="clear-log" class="small-btn">Clear</button>
+        </div>
+        <ul id="events"></ul>
+      </aside>
+    </main>
+
+    <!-- Controls Footer -->
+    <footer id="controls">
+      <div class="control-group">
+        <label>
+          <input type="checkbox" id="debug-mode">
+          Debug Mode
+        </label>
+      </div>
+      <div class="help">
+        Use <kbd>Arrow Keys</kbd> to navigate, <kbd>Enter</kbd> to select
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

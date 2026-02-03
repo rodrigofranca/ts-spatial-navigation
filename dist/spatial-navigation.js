@@ -1,4 +1,9 @@
-import { dispatch, exclude, extend, getCurrentFocusedElement, matchSelector, navigate, parseSelector } from './core';
+export { KeyCode, Grid, Defaults, EventName, RestrictMode, EnterTo } from './constants';
+export { getRect, partition, distanceBuilder } from './geometry';
+export { StateManager, createDefaultGlobalConfig, createInitialState } from './state';
+// Strategy pattern exports
+export { navigationStrategies, getStrategy, buildPrioritiesForDirection, leftStrategy, rightStrategy, upStrategy, downStrategy, } from './strategies';
+import { dispatch, exclude, extend, getCurrentFocusedElement, matchSelector, navigate, parseSelector, setEventPrefix } from './core';
 /************************/
 /* Global Configuration */
 /************************/
@@ -14,7 +19,9 @@ var globalConfig = {
     //  up: <extSelector>, down: <extSelector>}
     restrict: 'self-first',
     tabIndexIgnoreList: 'a, input, select, textarea, button, iframe, [contentEditable=true]',
-    navigableFilter: null
+    navigableFilter: null,
+    sectionPrefix: 'section-',
+    eventPrefix: 'sn:'
 };
 /*********************/
 /* Constant Variable */
@@ -397,7 +404,11 @@ function onFocus(evt) {
 }
 function onBlur(evt) {
     var target = evt.target;
-    // TODO: Checar se o target pode ser um window ou document
+    /**
+     * Filter out blur events from window/document objects.
+     * Although window and document are not focusable elements, blur events
+     * can bubble up to them. We only want to handle blur from actual HTML elements.
+     */
     if (target !== window &&
         target !== document &&
         !_pause &&
@@ -474,6 +485,13 @@ var SpatialNavigation = {
                 }
                 else if (value !== undefined) {
                     globalConfig[key] = value;
+                    // Apply global prefix changes
+                    if (key === 'sectionPrefix' && typeof value === 'string') {
+                        ID_POOL_PREFIX = value;
+                    }
+                    else if (key === 'eventPrefix' && typeof value === 'string') {
+                        setEventPrefix(value);
+                    }
                 }
             }
         }

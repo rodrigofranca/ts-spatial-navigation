@@ -1,5 +1,13 @@
 import type { Config, Direction } from './types';
 export type { Config, Direction, GlobalConfig, SpatialEventDetail } from './types';
+export type { SectionConfig, AddSectionConfig, SectionIdentity, NavigationBehavior, SectionTransition, FilterConfig, Rect, Point, Priority, Priorities, DistanceFunctions, NavigationState, SectionStore, } from './types';
+export { KeyCode, Grid, Defaults, EventName, RestrictMode, EnterTo } from './constants';
+export type { KeyCodeValue, GridPosition, EventNameValue, RestrictModeValue, EnterToValue } from './constants';
+export { getRect, partition, distanceBuilder } from './geometry';
+export { StateManager, createDefaultGlobalConfig, createInitialState } from './state';
+export type { SpatialNavigationAPI, CreateSpatialNavigationOptions } from './factory';
+export { navigationStrategies, getStrategy, buildPrioritiesForDirection, leftStrategy, rightStrategy, upStrategy, downStrategy, } from './strategies';
+export type { NavigationStrategy } from './strategies';
 /*******************/
 /*******************/
 declare const SpatialNavigation: {
@@ -58,7 +66,7 @@ declare const SpatialNavigation: {
     /**
      * Moves the focus to the given direction based on the rule of SpatialNavigation. The first element matching selector is regarded as the origin. If selector is omitted, SpatialNavigation will move the focus based on the currently focused element.
      */
-    move: (direction: Direction, selector?: Config['selector']) => boolean;
+    move: (direction: Direction, selector: Config['selector']) => boolean;
     /**
      * A helper to add `tabindex="-1"` to elements defined in the specified section to make them focusable. If `id` is omitted, it applies to all sections.
      *

@@ -1,0 +1,290 @@
+/* Focus Styles for Spatial Navigation */
+
+/* Base Focusable Element */
+.focusable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: #0f3460;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: #eee;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+  min-height: 60px;
+}
+
+.focusable:hover {
+  background: #1a4a7a;
+}
+
+/* Focused State */
+.focusable:focus {
+  background: #e94560;
+  border-color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.3);
+  z-index: 1;
+}
+
+/* Disabled State */
+.focusable.disabled,
+.focusable[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Checked/Selected State */
+.focusable.selected {
+  background: #4caf50;
+  border-color: #fff;
+}
+
+.focusable.selected:focus {
+  background: #66bb6a;
+}
+
+/* Section Styles */
+.section {
+  padding: 1rem;
+  border: 2px dashed #0f3460;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.section.active {
+  border-color: #e94560;
+  border-style: solid;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+
+/* Menu Items */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: left;
+  outline: none;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.menu-item:focus {
+  background: #e94560;
+  border-left-color: #fff;
+  color: #fff;
+}
+
+.menu-item.active {
+  background: rgba(233, 69, 96, 0.2);
+  border-left-color: #e94560;
+  color: #fff;
+}
+
+/* Card Grid */
+.card {
+  display: flex;
+  flex-direction: column;
+  background: #0f3460;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.card:hover {
+  background: #1a4a7a;
+}
+
+.card:focus {
+  border-color: #e94560;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card-image {
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, #1a4a7a 0%, #0f3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.card-content {
+  padding: 0.75rem;
+}
+
+.card-title {
+  font-weight: 500;
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+}
+
+.card-subtitle {
+  color: #888;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  border: 1px solid #0f3460;
+}
+
+.modal h2 {
+  margin: 0 0 1rem;
+  color: #e94560;
+}
+
+.modal p {
+  color: #aaa;
+  margin: 0 0 1.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.modal-btn.primary {
+  background: #e94560;
+  color: #fff;
+}
+
+.modal-btn.secondary {
+  background: #0f3460;
+  color: #eee;
+}
+
+.modal-btn:focus {
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.5);
+  transform: scale(1.02);
+}
+
+/* Button Variants */
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  background: #0f3460;
+  color: #eee;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.btn:hover {
+  background: #1a4a7a;
+}
+
+.btn:focus {
+  background: #e94560;
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.3);
+}
+
+/* Indicator Badge */
+.indicator {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: #e94560;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+/* Skip indicator for filtered elements */
+.focusable.filtered::after {
+  content: 'FILTERED';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.6rem;
+  color: #f44336;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* Direction Override Indicator */
+.focusable[data-sn-up]::before,
+.focusable[data-sn-down]::before,
+.focusable[data-sn-left]::before,
+.focusable[data-sn-right]::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #4caf50;
+  border-radius: 50%;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.focusable:focus {
+  animation: pulse 1s ease-in-out infinite;
+}

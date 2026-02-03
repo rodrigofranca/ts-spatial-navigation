@@ -1,76 +1,35 @@
 import type {
   Config,
   Direction,
-  DistanceFunctions,
   Priorities,
   Priority,
   Rect,
   SpatialEventDetail
 } from './types';
 
+// Re-export geometry functions for backwards compatibility
+export { getRect, partition, distanceBuilder } from './geometry';
+import { getRect, partition, distanceBuilder } from './geometry';
+
 /*****************/
 /* Core Function */
 /*****************/
-const EVENT_PREFIX = 'sn:';
+let EVENT_PREFIX = 'sn:';
 
-export const getRect = (elem: HTMLElement): Rect | null => {
-  const cr = elem.getBoundingClientRect();
-  if (!cr) {
-    return null;
-  }
-  const { left, top, right, bottom, width, height } = cr;
-  const x = left + Math.floor(width / 2);
-  const y = top + Math.floor(height / 2);
-  const rect: Rect = {
-    left: left,
-    top: top,
-    right: right,
-    bottom: bottom,
-    width: width,
-    height: height,
-    element: elem,
-    center: {
-      x: x,
-      y: y,
-      left: x,
-      right: x,
-      top: y,
-      bottom: y
-    }
-  };
-  return rect;
+/**
+ * Sets the event prefix for custom events dispatched by the library.
+ * @param prefix The new prefix to use (e.g., 'spatial:')
+ */
+export const setEventPrefix = (prefix: string): void => {
+  EVENT_PREFIX = prefix;
 };
 
-export const partition = (
-  rects: Rect[],
-  targetRect: Rect,
-  straightOverlapThreshold: number
-): Rect[][] => {
-  const groups: Rect[][] = [[], [], [], [], [], [], [], [], []];
-  for (let i = 0; i < rects.length; i++) {
-    const rect = rects[i];
-    const { center } = rect;
-    let x = center.x < targetRect.left ? 0 : center.x <= targetRect.right ? 1 : 2;
-    let y = center.y < targetRect.top ? 0 : center.y <= targetRect.bottom ? 1 : 2;
-    const groupId = y * 3 + x;
-    groups[groupId].push(rect);
-
-    if ([0, 2, 6, 8].includes(groupId)) {
-      if (rect.left <= targetRect.right - targetRect.width * straightOverlapThreshold) {
-        groupId === 2 ? groups[1].push(rect) : groupId === 8 ? groups[7].push(rect) : null;
-      }
-      if (rect.right >= targetRect.left + targetRect.width * straightOverlapThreshold) {
-        groupId === 0 ? groups[1].push(rect) : groupId === 6 ? groups[7].push(rect) : null;
-      }
-      if (rect.top <= targetRect.bottom - targetRect.height * straightOverlapThreshold) {
-        groupId === 6 ? groups[3].push(rect) : groupId === 8 ? groups[5].push(rect) : null;
-      }
-      if (rect.bottom >= targetRect.top + targetRect.height * straightOverlapThreshold) {
-        groupId === 0 ? groups[3].push(rect) : groupId === 2 ? groups[5].push(rect) : null;
-      }
-    }
-  }
-  return groups;
+/**
+ * Gets the current event prefix.
+ * @returns The current event prefix
+ */
+export const getEventPrefix = (): string => {
+  return EVENT_PREFIX;
 };
 
 export const prioritize = (priorities: Priorities): Rect[] | null => {
@@ -103,43 +62,6 @@ export const prioritize = (priorities: Priorities): Rect[] | null => {
   });
 
   return destPriority.group;
-};
-
-export const distanceBuilder = (targetRect: Rect): DistanceFunctions => {
-  return {
-    nearPlumbLineIsBetter: (rect: Rect) => {
-      const d =
-        rect.center.x < targetRect.center.x
-          ? targetRect.center.x - rect.right
-          : rect.left - targetRect.center.x;
-      return d < 0 ? 0 : d;
-    },
-    nearHorizonIsBetter: (rect: Rect) => {
-      const d =
-        rect.center.y < targetRect.center.y
-          ? targetRect.center.y - rect.bottom
-          : rect.top - targetRect.center.y;
-      return d < 0 ? 0 : d;
-    },
-    nearTargetLeftIsBetter: (rect: Rect) => {
-      const d =
-        rect.center.x < targetRect.center.x
-          ? targetRect.left - rect.right
-          : rect.left - targetRect.left;
-      return d < 0 ? 0 : d;
-    },
-    nearTargetTopIsBetter: (rect: Rect) => {
-      const d =
-        rect.center.y < targetRect.center.y
-          ? targetRect.top - rect.bottom
-          : rect.top - targetRect.top;
-      return d < 0 ? 0 : d;
-    },
-    topIsBetter: (rect) => rect.top,
-    bottomIsBetter: (rect) => -1 * rect.bottom,
-    leftIsBetter: (rect) => rect.left,
-    rightIsBetter: (rect) => -1 * rect.right
-  };
 };
 
 export const navigate = (
@@ -299,10 +221,10 @@ export const parseSelector = (selector: string | NodeList | HTMLElement): HTMLEl
 };
 
 export const matchSelector = (
-  elem: HTMLElement,
+  elem: HTMLElement | null | undefined,
   selector: string | HTMLElement[] | HTMLElement
 ): boolean => {
-  if (!elem) return;
+  if (!elem) return false;
   if (typeof selector === 'string') {
     return elem.matches(selector);
   } else if (Array.isArray(selector)) {
@@ -322,31 +244,53 @@ export const getCurrentFocusedElement = (): HTMLElement | null => {
   }
 };
 
-export const extend = (out, ...sources) => {
-  return sources.reduce((result, source) => {
-    Object.keys(source).forEach((key) => {
-      if (source[key] !== undefined) {
-        result[key] = source[key];
+/**
+ * Merges multiple source objects into a new object.
+ * Properties from later sources override earlier ones.
+ * Undefined values are ignored.
+ *
+ * @param out - Base object to extend
+ * @param sources - Source objects to merge from
+ * @returns New merged object (does not mutate inputs)
+ */
+// Overload: when first arg is empty object, infer from second
+export function extend<T extends object>(out: object, source: T): T;
+// Overload: when first arg is empty object with two sources
+export function extend<T extends object, U extends object>(out: object, source1: T, source2: U): T & U;
+// Overload: generic case
+export function extend<T extends object>(out: T, ...sources: object[]): T;
+// Implementation
+export function extend(out: object, ...sources: object[]): object {
+  const result = { ...out };
+  for (const source of sources) {
+    if (source) {
+      for (const key of Object.keys(source)) {
+        const value = (source as Record<string, unknown>)[key];
+        if (value !== undefined) {
+          (result as Record<string, unknown>)[key] = value;
+        }
       }
-    });
-
-    return result;
-  }, Object.assign({}, out));
-};
-
-export const exclude = (elemList, excludedElem) => {
-  if (!Array.isArray(excludedElem)) {
-    excludedElem = [excludedElem];
-  }
-
-  excludedElem.forEach((excluded) => {
-    const index = elemList.indexOf(excluded);
-    if (index >= 0) {
-      elemList.splice(index, 1);
     }
-  });
+  }
+  return result;
+}
 
-  return elemList;
+/**
+ * Returns a new array with excluded elements removed.
+ * Does not mutate the original array.
+ *
+ * @param elemList - Array of elements to filter
+ * @param excludedElem - Element(s) to exclude
+ * @returns New filtered array
+ */
+export const exclude = <T>(
+  elemList: T[],
+  excludedElem: T | T[]
+): T[] => {
+  const excludedSet = new Set(
+    Array.isArray(excludedElem) ? excludedElem : [excludedElem]
+  );
+  return elemList.filter((elem) => !excludedSet.has(elem));
 };
 
 export const dispatch = (

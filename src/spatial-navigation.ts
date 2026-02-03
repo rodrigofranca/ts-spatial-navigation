@@ -1,6 +1,42 @@
 import type { Config, Direction, GlobalConfig, SpatialEventDetail } from './types';
 export type { Config, Direction, GlobalConfig, SpatialEventDetail } from './types';
 
+// Re-export types and utilities for library consumers
+export type {
+  SectionConfig,
+  AddSectionConfig,
+  SectionIdentity,
+  NavigationBehavior,
+  SectionTransition,
+  FilterConfig,
+  Rect,
+  Point,
+  Priority,
+  Priorities,
+  DistanceFunctions,
+  NavigationState,
+  SectionStore,
+} from './types';
+
+export { KeyCode, Grid, Defaults, EventName, RestrictMode, EnterTo } from './constants';
+export type { KeyCodeValue, GridPosition, EventNameValue, RestrictModeValue, EnterToValue } from './constants';
+
+export { getRect, partition, distanceBuilder } from './geometry';
+export { StateManager, createDefaultGlobalConfig, createInitialState } from './state';
+export type { SpatialNavigationAPI, CreateSpatialNavigationOptions } from './factory';
+
+// Strategy pattern exports
+export {
+  navigationStrategies,
+  getStrategy,
+  buildPrioritiesForDirection,
+  leftStrategy,
+  rightStrategy,
+  upStrategy,
+  downStrategy,
+} from './strategies';
+export type { NavigationStrategy } from './strategies';
+
 import {
   dispatch,
   exclude,
@@ -8,7 +44,9 @@ import {
   getCurrentFocusedElement,
   matchSelector,
   navigate,
-  parseSelector
+  parseSelector,
+  setEventPrefix,
+  getEventPrefix
 } from './core';
 
 /************************/
@@ -26,7 +64,9 @@ var globalConfig: GlobalConfig = {
   //  up: <extSelector>, down: <extSelector>}
   restrict: 'self-first', // 'self-first', 'self-only', 'none'
   tabIndexIgnoreList: 'a, input, select, textarea, button, iframe, [contentEditable=true]',
-  navigableFilter: null
+  navigableFilter: null,
+  sectionPrefix: 'section-',
+  eventPrefix: 'sn:'
 };
 
 /*********************/
@@ -46,7 +86,7 @@ const REVERSE = {
   down: 'up'
 };
 
-const ID_POOL_PREFIX = 'section-';
+let ID_POOL_PREFIX = 'section-';
 
 /********************/
 /* Private Variable */
@@ -473,7 +513,11 @@ function onFocus(evt: KeyboardEvent) {
 function onBlur(evt: KeyboardEvent) {
   const target = evt.target as HTMLElement;
 
-  // TODO: Checar se o target pode ser um window ou document
+  /**
+   * Filter out blur events from window/document objects.
+   * Although window and document are not focusable elements, blur events
+   * can bubble up to them. We only want to handle blur from actual HTML elements.
+   */
   if (
     (target as any) !== window &&
     (target as any) !== document &&
@@ -550,6 +594,13 @@ const SpatialNavigation = {
           _sections[config.id][key] = value;
         } else if (value !== undefined) {
           globalConfig[key] = value;
+
+          // Apply global prefix changes
+          if (key === 'sectionPrefix' && typeof value === 'string') {
+            ID_POOL_PREFIX = value;
+          } else if (key === 'eventPrefix' && typeof value === 'string') {
+            setEventPrefix(value);
+          }
         }
       }
     }

@@ -1,60 +1,34 @@
-import * as jquery from 'jquery';
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+// Re-export geometry functions for backwards compatibility
+export { getRect, partition, distanceBuilder } from './geometry';
+import { getRect, partition, distanceBuilder } from './geometry';
 /*****************/
 /* Core Function */
 /*****************/
 var EVENT_PREFIX = 'sn:';
-export var getRect = function (elem) {
-    var cr = elem.getBoundingClientRect();
-    if (!cr) {
-        return null;
-    }
-    var left = cr.left, top = cr.top, right = cr.right, bottom = cr.bottom, width = cr.width, height = cr.height;
-    var x = left + Math.floor(width / 2);
-    var y = top + Math.floor(height / 2);
-    var rect = {
-        left: left,
-        top: top,
-        right: right,
-        bottom: bottom,
-        width: width,
-        height: height,
-        element: elem,
-        center: {
-            x: x,
-            y: y,
-            left: x,
-            right: x,
-            top: y,
-            bottom: y
-        }
-    };
-    return rect;
+/**
+ * Sets the event prefix for custom events dispatched by the library.
+ * @param prefix The new prefix to use (e.g., 'spatial:')
+ */
+export var setEventPrefix = function (prefix) {
+    EVENT_PREFIX = prefix;
 };
-export var partition = function (rects, targetRect, straightOverlapThreshold) {
-    var groups = [[], [], [], [], [], [], [], [], []];
-    for (var i = 0; i < rects.length; i++) {
-        var rect = rects[i];
-        var center = rect.center;
-        var x = center.x < targetRect.left ? 0 : center.x <= targetRect.right ? 1 : 2;
-        var y = center.y < targetRect.top ? 0 : center.y <= targetRect.bottom ? 1 : 2;
-        var groupId = y * 3 + x;
-        groups[groupId].push(rect);
-        if ([0, 2, 6, 8].includes(groupId)) {
-            if (rect.left <= targetRect.right - targetRect.width * straightOverlapThreshold) {
-                groupId === 2 ? groups[1].push(rect) : groupId === 8 ? groups[7].push(rect) : null;
-            }
-            if (rect.right >= targetRect.left + targetRect.width * straightOverlapThreshold) {
-                groupId === 0 ? groups[1].push(rect) : groupId === 6 ? groups[7].push(rect) : null;
-            }
-            if (rect.top <= targetRect.bottom - targetRect.height * straightOverlapThreshold) {
-                groupId === 6 ? groups[3].push(rect) : groupId === 8 ? groups[5].push(rect) : null;
-            }
-            if (rect.bottom >= targetRect.top + targetRect.height * straightOverlapThreshold) {
-                groupId === 0 ? groups[3].push(rect) : groupId === 2 ? groups[5].push(rect) : null;
-            }
-        }
-    }
-    return groups;
+/**
+ * Gets the current event prefix.
+ * @returns The current event prefix
+ */
+export var getEventPrefix = function () {
+    return EVENT_PREFIX;
 };
 export var prioritize = function (priorities) {
     var destPriority = null;
@@ -79,38 +53,6 @@ export var prioritize = function (priorities) {
         return 0;
     });
     return destPriority.group;
-};
-export var distanceBuilder = function (targetRect) {
-    return {
-        nearPlumbLineIsBetter: function (rect) {
-            var d = rect.center.x < targetRect.center.x
-                ? targetRect.center.x - rect.right
-                : rect.left - targetRect.center.x;
-            return d < 0 ? 0 : d;
-        },
-        nearHorizonIsBetter: function (rect) {
-            var d = rect.center.y < targetRect.center.y
-                ? targetRect.center.y - rect.bottom
-                : rect.top - targetRect.center.y;
-            return d < 0 ? 0 : d;
-        },
-        nearTargetLeftIsBetter: function (rect) {
-            var d = rect.center.x < targetRect.center.x
-                ? targetRect.left - rect.right
-                : rect.left - targetRect.left;
-            return d < 0 ? 0 : d;
-        },
-        nearTargetTopIsBetter: function (rect) {
-            var d = rect.center.y < targetRect.center.y
-                ? targetRect.top - rect.bottom
-                : rect.top - targetRect.top;
-            return d < 0 ? 0 : d;
-        },
-        topIsBetter: function (rect) { return rect.top; },
-        bottomIsBetter: function (rect) { return -1 * rect.bottom; },
-        leftIsBetter: function (rect) { return rect.left; },
-        rightIsBetter: function (rect) { return -1 * rect.right; }
-    };
 };
 export var navigate = function (target, direction, candidates, config) {
     if (!target || !direction || !candidates || !candidates.length) {
@@ -259,11 +201,8 @@ export var parseSelector = function (selector) {
 };
 export var matchSelector = function (elem, selector) {
     if (!elem)
-        return;
-    if (jquery) {
-        return jquery(elem).is(selector);
-    }
-    else if (typeof selector === 'string') {
+        return false;
+    if (typeof selector === 'string') {
         return elem.matches(selector);
     }
     else if (Array.isArray(selector)) {
@@ -283,31 +222,38 @@ export var getCurrentFocusedElement = function () {
         return null;
     }
 };
-export var extend = function (out) {
+// Implementation
+export function extend(out) {
     var sources = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         sources[_i - 1] = arguments[_i];
     }
-    return sources.reduce(function (result, source) {
-        Object.keys(source).forEach(function (key) {
-            if (source[key] !== undefined) {
-                result[key] = source[key];
+    var result = __assign({}, out);
+    for (var _a = 0, sources_1 = sources; _a < sources_1.length; _a++) {
+        var source = sources_1[_a];
+        if (source) {
+            for (var _b = 0, _c = Object.keys(source); _b < _c.length; _b++) {
+                var key = _c[_b];
+                var value = source[key];
+                if (value !== undefined) {
+                    result[key] = value;
+                }
             }
-        });
-        return result;
-    }, Object.assign({}, out));
-};
-export var exclude = function (elemList, excludedElem) {
-    if (!Array.isArray(excludedElem)) {
-        excludedElem = [excludedElem];
-    }
-    excludedElem.forEach(function (excluded) {
-        var index = elemList.indexOf(excluded);
-        if (index >= 0) {
-            elemList.splice(index, 1);
         }
-    });
-    return elemList;
+    }
+    return result;
+}
+/**
+ * Returns a new array with excluded elements removed.
+ * Does not mutate the original array.
+ *
+ * @param elemList - Array of elements to filter
+ * @param excludedElem - Element(s) to exclude
+ * @returns New filtered array
+ */
+export var exclude = function (elemList, excludedElem) {
+    var excludedSet = new Set(Array.isArray(excludedElem) ? excludedElem : [excludedElem]);
+    return elemList.filter(function (elem) { return !excludedSet.has(elem); });
 };
 export var dispatch = function (elem, type, details, cancelable) {
     if (cancelable === void 0) { cancelable = true; }

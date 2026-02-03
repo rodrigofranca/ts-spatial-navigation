@@ -1,22 +1,17 @@
 {
-  "name": "spatial-navigation",
-  "version": "1.0.0",
+  "name": "ts-spatial-navigation",
+  "version": "1.0.0-beta.1",
   "description": "A TypeScript library for spatial navigation in Smart TV applications",
-  "type": "module",
-  "main": "dist/spatial-navigation.js",
-  "module": "src/spatial-navigation.ts",
-  "types": "dist/types.d.ts",
-  "files": [
-    "dist/"
-  ],
-  "scripts": {
-    "build": "tsc --build",
-    "copy-types": "cpy src/index.d.ts dist --flat",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+  "author": "Rodrigo França <rodrigo@example.com>",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/user/ts-spatial-navigation.git"
   },
+  "bugs": {
+    "url": "https://github.com/user/ts-spatial-navigation/issues"
+  },
+  "homepage": "https://github.com/user/ts-spatial-navigation#readme",
   "keywords": [
     "spatial-navigation",
     "smart-tv",
@@ -24,17 +19,68 @@
     "navigation",
     "focus",
     "keyboard-navigation",
-    "typescript"
+    "typescript",
+    "webos",
+    "tizen",
+    "android-tv",
+    "fire-tv",
+    "arrow-keys"
   ],
-  "author": "Rodrigo França",
-  "license": "MPL-2.0",
+  "type": "module",
+  "main": "./dist/spatial-navigation.js",
+  "module": "./dist/spatial-navigation.js",
+  "types": "./dist/spatial-navigation.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/spatial-navigation.d.ts",
+      "import": "./dist/spatial-navigation.js",
+      "default": "./dist/spatial-navigation.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./geometry": {
+      "types": "./dist/geometry.d.ts",
+      "import": "./dist/geometry.js"
+    },
+    "./constants": {
+      "types": "./dist/constants.d.ts",
+      "import": "./dist/constants.js"
+    },
+    "./strategies": {
+      "types": "./dist/strategies.d.ts",
+      "import": "./dist/strategies.js"
+    },
+    "./state": {
+      "types": "./dist/state.d.ts",
+      "import": "./dist/state.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "build:clean": "rm -rf dist && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build:clean && npm test"
+  },
   "devDependencies": {
     "@types/node": "^20.11.5",
-    "@vitest/ui": "^1.2.0",
-    "cpy-cli": "^4.2.0",
-    "happy-dom": "^12.10.3",
-    "jquery": "^3.6.3",
+    "@vitest/ui": "^4.0.18",
+    "happy-dom": "^20.5.0",
     "typescript": "^4.9.5",
-    "vitest": "^1.2.0"
+    "vitest": "^4.0.18"
   }
 }

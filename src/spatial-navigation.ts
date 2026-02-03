@@ -45,8 +45,7 @@ import {
   matchSelector,
   navigate,
   parseSelector,
-  setEventPrefix,
-  getEventPrefix
+  setEventPrefix
 } from './core';
 
 /************************/

@@ -1,456 +1,284 @@
-Typed JavaScript SpatialNavigation
-============================
+# ts-spatial-navigation
 
-A fully typed javascript-based implementation of Spatial Navigation.
+A TypeScript library for spatial navigation in Smart TV applications, TV boxes, and any interface that requires arrow key navigation.
 
-Based on luke-chang/js-spatial-navigation <https://github.com/luke-chang/js-spatial-navigation>
+[![npm version](https://badge.fury.io/js/ts-spatial-navigation.svg)](https://www.npmjs.com/package/ts-spatial-navigation)
+[![CI](https://github.com/user/ts-spatial-navigation/actions/workflows/ci.yml/badge.svg)](https://github.com/user/ts-spatial-navigation/actions/workflows/ci.yml)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
-RFC: <https://www.w3.org/TR/css-nav-1/>
+## Features
 
-* [Examples](#examples)
-* [Documentation](#documentation)
-  * [API Reference](#api-reference)
-  * [Configuration](#configuration)
-  * [Custom Attributes](#custom-attributes)
-  * [Selector](#selector-1)
-  * [Events](#events)
-* [Browser Support](#browser-support)
-* [License](#license)
+- 🎯 **Intuitive Navigation** - Determines which element to focus based on arrow key direction
+- 📦 **Section Management** - Group elements logically (menu, content, modal)
+- ⚙️ **Highly Configurable** - Customize navigation behavior per section
+- 🔒 **Type Safe** - Written in TypeScript with full type definitions
+- 🪶 **Zero Dependencies** - No external runtime dependencies
+- 📱 **Platform Support** - Works on webOS, Tizen, Android TV, Fire TV, and web browsers
 
-Problem
---------
+## Installation
 
-Examples
---------
+```bash
+npm install ts-spatial-navigation
+```
 
-### Basic usage
+## Quick Start
+
+```typescript
+import SpatialNavigation from 'ts-spatial-navigation';
+
+// Initialize
+SpatialNavigation.init();
+
+// Add a section with focusable elements
+SpatialNavigation.add({
+  id: 'menu',
+  selector: '.menu-item'
+});
+
+// Make elements focusable
+SpatialNavigation.makeFocusable();
+
+// Focus the first element
+SpatialNavigation.focus();
+```
+
+## Usage
+
+### Basic Setup
 
 ```html
-<head>
-  <script src="https://luke-chang.github.io/js-spatial-navigation/spatial_navigation.js"></script>
-  <script>
-    window.addEventListener('load', function() {
-      // Initialize
-      SpatialNavigation.init();
-
-      // Define navigable elements (anchors and elements with "focusable" class).
-      SpatialNavigation.add({
-        selector: 'a, .focusable'
-      });
-
-      // Make the *currently existing* navigable elements focusable.
-      SpatialNavigation.makeFocusable();
-
-      // Focus the first navigable element.
-      SpatialNavigation.focus();
-    });
-  </script>
-  <style>
-    /* Add style to the focused elements */
-    :focus {
-      outline: 2px solid red;
-    }
-  </style>
-</head>
-<body>
-  <a href="#">Link 1</a>
-  <a href="#">Link 2</a>
-  <div class="focusable">Div 1</div>
-  <div class="focusable">Div 2</div>
-</body>
+<nav>
+  <button class="menu-item">Home</button>
+  <button class="menu-item">Movies</button>
+  <button class="menu-item">Series</button>
+  <button class="menu-item">Settings</button>
+</nav>
 ```
 
-### Integrate jQuery
+```typescript
+import SpatialNavigation from 'ts-spatial-navigation';
 
-Although SpatialNavigation is a standalone (pure-javascript-based) library, it can work perfectly with jQuery.
+SpatialNavigation.init();
 
-```html
-<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
-<script>
-  $.getScript('https://luke-chang.github.io/js-spatial-navigation/spatial_navigation.js', function() {
-    $('a, .focusable')
-      .SpatialNavigation()
-      .focus(function() { $(this).css('outline', '2px solid red'); })
-      .blur(function() { $(this).css('outline', ''); })
-      .first()
-      .focus();
-  });
-</script>
+SpatialNavigation.add({
+  id: 'main-menu',
+  selector: '.menu-item',
+  defaultElement: '.menu-item:first-child'
+});
+
+SpatialNavigation.makeFocusable();
+SpatialNavigation.focus();
 ```
 
-### More Demonstrations
+### Multiple Sections
 
-* [Demonstrations](https://luke-chang.github.io/js-spatial-navigation/demo/)
+```typescript
+// Menu section
+SpatialNavigation.add({
+  id: 'menu',
+  selector: '.menu-item',
+  restrict: 'self-only' // Cannot leave this section via keyboard
+});
 
-Documentation
--------------
-
-### API Reference
-
-#### `SpatialNavigation.init()`
-
-Initializes SpatialNavigation and binds event listeners to the global object. It is a synchronous function, so you don't need to await ready state. Calling `init()` more than once is possible since SpatialNavigation internally prevents it from reiterating the initialization.
-
-**Note:** It should be called before using any other methods of SpatialNavigation!
-
-#### `SpatialNavigation.uninit()`
-
-Uninitializes SpatialNavigation, resets the variable state and unbinds the event listeners.
-
-#### `SpatialNavigation.clear()`
-
-Resets the variable state without unbinding the event listeners.
-
-#### `SpatialNavigation.add([sectionId], config)`
-
-* `sectionId`: (optional) String
-* `config`: [Configuration](#configuration)
-
-Adds a section to SpatialNavigation with its own configuration. The `config` doesn't have to contain all the properties. Those omitted will inherit global ones automatically.
-
-A section is a conceptual scope to define a set of elements no matter where they are in DOM structure. You can group elements based on their functions or behaviors (e.g. main, menu, dialog, etc.) into a section.
-
-Giving a `sectionId` to a section enables you to refer to it in other methods but is not required. SpatialNavigation allows you to set it by `config.id` alternatively, yet it is not allowed in [`set()`](#spatialnavigationsetsectionid-config).
-
-#### `SpatialNavigation.remove(sectionId)`
-
-* `sectionId`: String
-
-Removes the section with the specified `sectionId` from SpatialNavigation. Elements defined in this section will not be navigated anymore.
-
-#### `SpatialNavigation.set([sectionId], config)`
-
-* `sectionId`: (optional) String
-* `config`: [Configuration](#configuration)
-
-Updates the `config` of the section with the specified `sectionId`. If `sectionId` is omitted, the global configuration will be updated.
-
-Omitted properties in `config` will not affect the original one, which was set by [`add()`](#spatialnavigationaddsectionid-config), so only properties that you want to update need to be listed. In other words, if you want to delete any previously added properties, you have to explicitly assign `undefined` to those properties in the `config`.
-
-#### `SpatialNavigation.disable(sectionId)`
-
-* `sectionId`: String
-
-Disables the section with the specified `sectionId` temporarily. Elements defined in this section will become unnavigable until [`enable()`](#spatialnavigationenablesectionid) is called.
-
-#### `SpatialNavigation.enable(sectionId)`
-
-* `sectionId`: String
-
-Enables the section with the specified `sectionId`. Elements defined in this section, on which if [`disable()`](#spatialnavigationdisablesectionid) was called earlier, will become navigable again.
-
-#### `SpatialNavigation.pause()`
-
-Makes SpatialNavigation pause until [`resume()`](#spatialnavigationresume) is called. During its pause, SpatialNavigation stops to react to key events and will not trigger any custom events.
-
-#### `SpatialNavigation.resume()`
-
-Resumes SpatialNavigation, so it can react to key events and trigger events which paused because of [`pause()`](#spatialnavigationpause).
-
-#### `SpatialNavigation.focus([sectionId/selector], [silent])`
-
-* `sectionId/selector`: (optional) String / [Selector](#selector-1) (without @ syntax)
-* `silent`: (optional) Boolean
-
-Focuses the section with the specified `sectionId` or the first element that matches `selector`.
-
-If the first argument matches any of the existing `sectionId`, it will be regarded as a `sectionId`. Otherwise, it will be treated as `selector` instead. If omitted, the default section, which is set by [`setDefaultSection()`](#spatialnavigationsetdefaultsectionsectionid), will be the substitution.
-
-Setting `silent` to `true` lets you focus an element without triggering any custom events, but note that it does not stop native `focus` and `blur` events.
-
-#### `SpatialNavigation.move(direction, [selector])`
-
-* `direction`: `'left'`, `'right'`, `'up'` or `'down'`
-* `selector`: (optional) [Selector](#selector-1) (without @ syntax)
-
-Moves the focus to the given `direction` based on the rule of SpatialNavigation. The first element matching `selector` is regarded as the origin. If `selector` is omitted, SpatialNavigation will move the focus based on the currently focused element.
-
-#### `SpatialNavigation.makeFocusable([sectionId])`
-
-* `sectionId`: (optional) String
-
-A helper to add `tabindex="-1"` to elements defined in the specified section to make them focusable. If `sectionId` is omitted, it applies to all sections.
-
-**Note:** It won't affect elements which have been focusable already or have not been appended to DOM tree yet.
-
-#### `SpatialNavigation.setDefaultSection([sectionId])`
-
-* `sectionId`: (optional) String
-
-Assigns the specified section to be the default section. It will be used as a substitution in certain methods, of which if `sectionId` is omitted.
-
-Calling this method without the argument can reset the default section to `undefined`.
-
-### Configuration
-
-Configuration is a plain object with configurable properties.
-
-There are two kinds of the configuration: global and per-section. If you call [`set(config)`](#spatialnavigationsetsectionid-config) without specifying `sectionId`, it will apply to the global one, from which the omitted per-section properties will inherit automatically.
-
-Following is an example with default values.
-
-```js
-{
-  selector: '',
-  straightOnly: false,
-  straightOverlapThreshold: 0.5,
-  rememberSource: false,
-  disabled: false,
-  defaultElement: '',
-  enterTo: '',
-  leaveFor: null,
-  restrict: 'self-first',
-  tabIndexIgnoreList: 'a, input, select, textarea, button, iframe, [contentEditable=true]',
-  navigableFilter: null
-}
+// Content section
+SpatialNavigation.add({
+  id: 'content',
+  selector: '.content-card',
+  enterTo: 'last-focused' // Remember last focused element
+});
 ```
 
-#### `selector`
+### Configuration Options
 
-* Type: [Selector](#selector-1)
-* Default: `''`
+```typescript
+SpatialNavigation.add({
+  id: 'my-section',
+  selector: '.focusable',
 
-Elements matching `selector` are regarded as navigable elements in SpatialNavigation. However, hidden or disabled elements are ignored as they can not be focused in any way.
+  // Navigation behavior
+  straightOnly: false,           // Allow diagonal navigation
+  straightOverlapThreshold: 0.5, // Threshold for straight navigation
+  rememberSource: true,          // Remember where we came from
 
-#### `straightOnly`
+  // Section transitions
+  enterTo: 'last-focused',       // 'last-focused' | 'default-element' | ''
+  restrict: 'self-first',        // 'self-first' | 'self-only' | 'none'
 
-* Type: Boolean
-* Default: `false`
+  // Default element
+  defaultElement: '.first-item',
 
-When it is `true`, only elements in the straight (vertical or horizontal) direction will be navigated. i.e. SpatialNavigation ignores elements in the oblique directions.
-
-#### `straightOverlapThreshold`
-
-* Type: Number in the range [0, 1]
-* Default: `0.5`
-
-This threshold is used to determine whether an element is considered in the straight (vertical or horizontal) directions. Valid number is between 0 to 1.0.
-
-Setting it to 0.3 means that an element is counted in the straight directions only if it overlaps the straight area at least 0.3x of its total area.
-
-#### `rememberSource`
-
-* Type: Boolean
-* Default: `false`
-
-When it is `true`, the previously focused element will have higher priority to be chosen as the next candidate.
-
-#### `disabled`
-
-* Type: Boolean
-* Default: `false`
-
-When it is `true`, elements defined in this section are unnavigable. This property is modified by [`disable()`](#spatialnavigationdisablesectionid) and [`enable()`](#spatialnavigationenablesectionid) as well.
-
-#### `defaultElement`
-
-* Type: [Selector](#selector-1) (without @ syntax)
-* Default: `''`
-
-When a section is specified to be the next focused target, e.g. [`focus('some-section-id')`](#spatialnavigationfocussectionidselector-silent) is called, the first navigable element matching `defaultElement` within this section will be chosen first.
-
-#### `enterTo`
-
-* Type: `''`, `'last-focused'` or `'default-element'`
-* Default: `''`
-
-If the focus comes from another section, you can define which element in this section should be focused first.
-
-`'last-focused'` indicates the last focused element before we left this section last time. If this section has never been focused yet, the default element (if any) will be chosen next.
-
-`'default-element'` indicates the element defined in [`defaultElement`](#defaultelement).
-
-`''` (empty string) implies following the original rule without any change.
-
-#### `leaveFor`
-
-* Type: `null` or PlainObject
-* Default: `null`
-
-This property specifies which element should be focused next when a user presses the corresponding arrow key and intends to leave the current section.
-
-It should be a PlainObject consists of four properties: `'left'`, `'right'`, `'up'` and `'down'`. Each property should be a [Selector](#selector-1). Any of these properties can be omitted, and SpatialNavigation will follow the original rule to navigate.
-
-**Note:** Assigning an empty string to any of these properties makes SpatialNavigation go nowhere at that direction.
-
-#### `restrict`
-
-* Type: `'self-first'`, `'self-only'` or `'none'`
-* Default: `'self-first'`
-
-`'self-first'` implies that elements within the same section will have higher priority to be chosen as the next candidate.
-
-`'self-only'` implies that elements in the other sections will never be navigated by arrow keys. (However, you can always focus them by calling [`focus()`](#spatialnavigationfocussectionidselector-silent) manually.)
-
-`'none'` implies no restriction.
-
-#### `tabIndexIgnoreList`
-
-* Type: String
-* Default: `'a, input, select, textarea, button, iframe, [contentEditable=true]'`
-
-Elements matching `tabIndexIgnoreList` will never be affected by [`makeFocusable()`](#spatialnavigationmakefocusablesectionid). It is usually used to ignore elements that are already focusable.
-
-#### `navigableFilter`
-
-* Type: `'null'` or `function(HTMLElement)`
-* Default: `null`
-
-A callback function that accepts a DOM element as the first argument.
-
-SpatialNavigation calls this function every time when it tries to traverse every single candidate. You can ignore arbitrary elements by returning `false`.
-
-### Custom Attributes
-
-SpatialNavigation supports HTML `data-*` attributes as follows:
-
-* `data-sn-left`
-* `data-sn-right`
-* `data-sn-up`
-* `data-sn-down`
-
-They specifies which element should be focused next when a user presses the corresponding arrow key. This setting overrides any other settings in [`enterTo`](#enterto) and [`leaveFor`](#leavefor).
-
-The value of each attribute should be a [Selector](#selector-1) and only accepts strings (the **valid selector string** and **`@` syntax** described below) for now. Any of these attributes can be omitted, and SpatialNavigation will follow the original rule to navigate.
-
-**Note:** Assigning an empty string to any of these attributes makes SpatialNavigation go nowhere at that direction.
-
-### Selector
-
-The type "Selector" can be any of the following types.
-
-* a valid selector string for "querySelectorAll" or jQuery (if it exists)
-* a [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList) or an array containing DOM elements
-* a single DOM element
-* a jQuery object
-* a string `'@<sectionId>'` to indicate the specified section (e.g. `'@test-section'` indicates the section whose id is `test-section`.
-* a string `'@'` to indicate the default section
-
-**Note:** Certain methods do not accept the `@` syntax (including both `@` and `@<sectionId>`).
+  // Leave behavior
+  leaveFor: {
+    left: '#other-section',
+    right: '@another-section',   // @ syntax for section ID
+    up: null,                    // Prevent leaving in this direction
+    down: '.specific-element'
+  }
+});
+```
 
 ### Events
 
-Following custom events are triggered by SpatialNavigation. You can bind them by `addEventListener()`. Some events are marked **"cancelable"**, which means you can cancel them by `Event.preventDefault()`, as usual.
+```typescript
+// Listen for navigation events
+document.addEventListener('sn:willfocus', (e) => {
+  console.log('About to focus:', e.detail.nextElement);
+  // e.preventDefault() to cancel
+});
 
-Focus-related events are also wrappers of the native `focus`/`blur` events, so they are triggered as well even SpatialNavigation is not involved. In this case, some properties in `event.detail` may be omitted. This kind of properties is marked **"Navigation Only"** below.
+document.addEventListener('sn:focused', (e) => {
+  console.log('Focused:', e.target);
+  console.log('Direction:', e.detail.direction);
+});
 
-**Note:** If you bind events via jQuery's [`.on()`](http://api.jquery.com/on/) API, you must change to `event.originalEvent.detail` to access the `detail` objects.
+document.addEventListener('sn:willunfocus', (e) => {
+  console.log('About to unfocus:', e.target);
+});
 
-#### `sn:willmove`
+document.addEventListener('sn:unfocused', (e) => {
+  console.log('Unfocused:', e.target);
+});
 
-* bubbles: `true`
-* cancelable: `true`
-* detail:
-  * cause: `'keydown'` or `'api'`
-  * sectionId: `<String>`
-  * direction: `'left'`, `'right'`, `'up'` or `'down'`
+// Enter key events
+document.addEventListener('sn:enter-down', (e) => {
+  console.log('Enter pressed on:', e.target);
+});
 
-Fired when SpatialNavigation is about to move the focus.
+document.addEventListener('sn:enter-up', (e) => {
+  console.log('Enter released on:', e.target);
+});
 
-`cause` indicates why this move happens. `'keydown'` means triggered by key events while `'api'` means triggered by calling [`move()`](#spatialnavigationmovedirection-selector)) directly.
+// Navigation failed (no element found in direction)
+document.addEventListener('sn:navigatefailed', (e) => {
+  console.log('Cannot navigate:', e.detail.direction);
+});
+```
 
-`sectionId` indicates the currently focused section.
+### Programmatic Navigation
 
-`direction` indicates the direction given by arrow keys or [`move()`](#spatialnavigationmovedirection-selector) method.
+```typescript
+// Focus specific element
+SpatialNavigation.focus('#my-element');
+SpatialNavigation.focus(document.getElementById('my-element'));
 
-#### `sn:willunfocus`
+// Focus a section
+SpatialNavigation.focus('@menu'); // Focus default/last element in 'menu' section
 
-* bubbles: `true`
-* cancelable: `true`
-* detail:
-  * nextElement: `<HTMLElement>` (Navigation Only)
-  * nextSectionId: `<String>` (Navigation Only)
-  * direction: `'left'`, `'right'`, `'up'` or `'down'` (Navigation Only)
-  * native: `<Boolean>`
+// Move in a direction
+SpatialNavigation.move('right');
+SpatialNavigation.move('up');
 
-Fired when an element is about to lose the focus.
+// Pause/Resume navigation
+SpatialNavigation.pause();
+SpatialNavigation.resume();
 
-`nextElement` and `nextSectionId` indicate where the focus will be moved next.
+// Enable/Disable sections
+SpatialNavigation.disable('menu');
+SpatialNavigation.enable('menu');
+```
 
-`direction` is similar to [`sn:willmove`](#snwillmove) but will be omitted here if this move is not caused by direction-related actions (e.g. by `@` syntax or [`focus()`](#spatialnavigationfocussectionidselector-silent) directly).
+### Global Configuration
 
-`native` indicates whether this event is triggered by native focus-related events or not.
+```typescript
+SpatialNavigation.init();
 
-**Note:** If it is caused by native `blur` event, SpatialNavigation will try to focus back to the original element when you cancel it (but not guaranteed).
+// Set global configuration
+SpatialNavigation.set({
+  straightOnly: true,
+  tabIndexIgnoreList: 'a, input, select, textarea, button'
+});
 
-#### `sn:unfocused`
+// Set default section
+SpatialNavigation.setDefaultSection('main-content');
+```
 
-* bubbles: `true`
-* cancelable: `false`
-* detail:
-  * nextElement: `<HTMLElement>` (Navigation Only)
-  * nextSectionId: `<String>` (Navigation Only)
-  * direction: `'left'`, `'right'`, `'up'` or `'down'` (Navigation Only)
-  * native: `<Boolean>`
+## API Reference
 
-Fired when an element just lost the focus.
+### Methods
 
-Event details are the same as [`sn:willunfocus`](#snwillunfocus).
+| Method | Description |
+|--------|-------------|
+| `init()` | Initialize spatial navigation |
+| `uninit()` | Uninitialize and cleanup |
+| `clear()` | Remove all sections |
+| `add(config)` | Add a new section |
+| `remove(id)` | Remove a section |
+| `set(id, config)` | Update section configuration |
+| `get(id)` | Get section configuration |
+| `disable(id)` | Disable a section |
+| `enable(id)` | Enable a section |
+| `focus(target?, silent?)` | Focus an element or section |
+| `move(direction, selector?)` | Move focus in a direction |
+| `pause()` | Pause navigation |
+| `resume()` | Resume navigation |
+| `makeFocusable(id?)` | Add tabindex to elements |
+| `setDefaultSection(id)` | Set default section |
 
-#### `sn:willfocus`
+### Types
 
-* bubbles: `true`
-* cancelable: `true`
-* detail:
-  * sectionId: `<String>`
-  * previousElement: `<HTMLElement>` (Navigation Only)
-  * direction: `'left'`, `'right'`, `'up'` or `'down'` (Navigation Only)
-  * native: `<Boolean>`
+```typescript
+import type {
+  Direction,           // 'up' | 'down' | 'left' | 'right'
+  SectionConfig,       // Section configuration
+  GlobalConfig,        // Global configuration
+  SpatialEventDetail   // Event detail object
+} from 'ts-spatial-navigation';
+```
 
-Fired when an element is about to get the focus.
+### Sub-module Imports
 
-`sectionId` indicates the currently focused section.
+```typescript
+// Import specific modules
+import { getRect, partition } from 'ts-spatial-navigation/geometry';
+import { KeyCode, Grid, Defaults } from 'ts-spatial-navigation/constants';
+import { navigationStrategies } from 'ts-spatial-navigation/strategies';
+```
 
-`previousElement` indicates the last focused element before this move.
+## Browser Support
 
-`direction` and `native` are the same as [`sn:willunfocus`](#snwillunfocus).
+- Chrome/Edge 80+
+- Firefox 75+
+- Safari 13+
+- Samsung Tizen TV
+- LG webOS TV
+- Android TV (Chrome-based)
+- Amazon Fire TV
 
-**Note:** If it is caused by native `focus` event, SpatialNavigation will try to blur it immediately when you cancel it (but not guaranteed).
+## CSS Styling
 
-#### `sn:focused`
+```css
+/* Focus styles */
+.focusable:focus {
+  outline: 3px solid #007bff;
+  outline-offset: 2px;
+}
 
-* bubbles: `true`
-* cancelable: `false`
-* detail:
-  * sectionId: `<String>`
-  * previousElement: `<HTMLElement>` (Navigation Only)
-  * direction: `'left'`, `'right'`, `'up'` or `'down'` (Navigation Only)
-  * native: `<Boolean>`
+/* Optional: Add focus-visible for better UX */
+.focusable:focus:not(:focus-visible) {
+  outline: none;
+}
 
-Fired when an element just got the focus.
+.focusable:focus-visible {
+  outline: 3px solid #007bff;
+  outline-offset: 2px;
+}
+```
 
-Event details are the same as [`sn:willfocus`](#snwillfocus).
+## Migration from js-spatial-navigation
 
-#### `sn:navigatefailed`
+This library is a TypeScript port of [js-spatial-navigation](https://github.com/luke-chang/js-spatial-navigation). The API is fully compatible:
 
-* bubbles: `true`
-* cancelable: `false`
-  * direction: `'left'`, `'right'`, `'up'` or `'down'`
+```diff
+- <script src="spatial_navigation.js"></script>
+- <script>SpatialNavigation.init();</script>
++ import SpatialNavigation from 'ts-spatial-navigation';
++ SpatialNavigation.init();
+```
 
-Fired when SpatialNavigation fails to find the next element to be focused.
+## License
 
-`direction` is the same as [`sn:willunfocus`](#snwillunfocus).
+[MPL-2.0](LICENSE) - Mozilla Public License 2.0
 
-#### `sn:enter-down`
+## Credits
 
-* bubbles: `true`
-* cancelable: `true`
-
-Fired when ENTER key is pressed down.
-
-#### `sn:enter-up`
-
-* bubbles: `true`
-* cancelable: `true`
-
-Fired when ENTER key is released.
-
-Browser Support
----------------
-
-Chrome 5, Firefox 12, IE 9, Opera 11.5, Safari 5
-
-License
--------
-
-Copyright (c) 2022 Luke Chang. Licensed under the MPL 2.0.
+Based on [js-spatial-navigation](https://github.com/luke-chang/js-spatial-navigation) by Luke Chang.
